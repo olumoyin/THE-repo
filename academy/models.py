@@ -44,9 +44,9 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
-  
+
     def get_instructor_fullname(self):
-        return self.instructor.instructor_fullname
+        return '' if not self.instructor else self.instructor.instructor_fullname()
 
 class Enrollment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

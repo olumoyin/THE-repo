@@ -5,35 +5,48 @@ from .models import Course , Module, Lesson, Enrollment, Quiz, QuizQuestion, Qui
 from users.models import  StudentProfile, InstructorProfile
 
 
-class CourseSerializer(serializers.ModelSerializer):
+# class CourseSerializer(serializers.ModelSerializer):
 #     instructor = serializers.SerializerMethodField(read_only=True, )
     
-    class Meta:
-        model= Course
-        fields= (
-            'id',
-            'name',
-            'cover_image',
-            'description',
-            'difficulty',
-            'summary',
-            'price',
-        #     'instructor',
-            'prerequisites',
-            'requirements',
-            'is_certified',
-            'schedule',
-            'duration',
-            'average_rating',
-            'created_at',
-            'updated_at',
-        )
+    # class Meta:
+    #     model= Course
+    #     fields= (
+    #         'id',
+    #         'name',
+    #         'cover_image',
+    #         'description',
+    #         'difficulty',
+    #         'summary',
+    #         'price',
+    #     #     'instructor',
+    #         'prerequisites',
+    #         'requirements',
+    #         'is_certified',
+    #         'schedule',
+    #         'duration',
+    #         'average_rating',
+    #         'created_at',
+    #         'updated_at',
+    #     )
 
 #     def get_instructor(self, obj):
 #          if not hasattr(obj, 'instructor'):
 #              return None
 #          return obj.instructor.instructor_fullname
     
+class CourseSerializer(serializers.ModelSerializer):
+    instructor_fullname = serializers.CharField(source='get_instructor_fullname' ,read_only=True, required=False)
+
+    class Meta:
+        model = Course
+        fields = '__all__'
+        read_only_fields = [
+            'average_rating',
+            'created_at',
+            'updated_at',
+            'id',
+            ]
+
 
 class ModuleSerializer(serializers.ModelSerializer):
 #         

@@ -24,13 +24,12 @@ class CourseViewSet(viewsets.ModelViewSet):
     '''
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permisson_classes=[IsInstructorPermission]
-    lookup_field = 'name'
+    permission_classes=[IsInstructorPermission]
     search_fields = ["name", "description"]
-    
- 
-    
-  
+
+    def get_permissions(self):
+        return super().get_permissions()
+
 class ModuleViewSet(viewsets.ModelViewSet,
                     ):
     '''
