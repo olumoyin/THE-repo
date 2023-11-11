@@ -27,8 +27,9 @@ class CourseViewSet(viewsets.ModelViewSet):
     permission_classes=[IsInstructorPermission]
     search_fields = ["name", "description"]
 
-    def get_permissions(self):
-        return super().get_permissions()
+    def create(self, request, *args, **kwargs):
+        request.data['instructor'] = request.user.id
+        return super().create(request, *args, **kwargs)
 
 class ModuleViewSet(viewsets.ModelViewSet,
                     ):
