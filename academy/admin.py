@@ -4,6 +4,7 @@ from academy.models import (
     Course, 
     Enrollment,
     InstructorProfile,
+    Answer,
     # InstructorReview,
     Module,
     StudentProfile, 
@@ -13,7 +14,6 @@ from academy.models import (
     # CourseReview,
     Quiz,
     QuizQuestion,
-    QuizQuestionOption
 )
 
 
@@ -24,31 +24,38 @@ class CourseAdmin(admin.ModelAdmin):
     list_filter = ( "difficulty", "schedule")
     search_fields = ( "name",)
 
-# @admin.register(Enrollment)
-# class EnrollmentAdmin(admin.ModelAdmin):
-#     list_display = ["student", "course", "enrollment_date"]
-#     list_filter = ["student", "course", "enrollment_date"]
-#     search_field = ["student", "course"]
-
-# @admin.register(Tag)
-# class TagAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'name',]
-#     list_filter = ['name']
-#     search_fields = ['name',]
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = ["student", "course", "enrollment_date"]
+    list_filter = ["student", "course", "enrollment_date"]
+    search_field = ["student", "course"]
 
 
-# @admin.register(Module)
-# class ModuleAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'name', 'course', 'created_at']
-#     list_filter = ['course', 'updated_at' ]
-#     search_fields = ['name', 'description']
-#     autocomplete_fields = ['tags']
+@admin.register(Answer)
+class AnswerAdmin(admin.ModelAdmin):
+    list_display = ["id"]
+    list_filter = [ 'input_text','selected_option']
+    search_field = ["student", "course"]
 
-# @admin.register(Lesson)
-# class LessonAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'name', 'module', 'updated_at']
-#     list_filter = ['module', 'created_at', 'updated_at']
-#     search_fields = ['name', 'description']
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name',]
+    list_filter = ['name']
+    search_fields = ['name',]
+
+
+@admin.register(Module)
+class ModuleAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'course', 'created_at']
+    list_filter = ['course', 'updated_at' ]
+    search_fields = ['name', 'description']
+    autocomplete_fields = ['tags']
+
+@admin.register(Lesson)
+class LessonAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'module', 'updated_at']
+    list_filter = ['module', 'created_at', 'updated_at']
+    search_fields = ['name', 'description']
 
 
 # @admin.register(TagModule)
@@ -64,17 +71,17 @@ class CourseAdmin(admin.ModelAdmin):
 #     list_filter = ['rating', 'course', 'created_at']
 #     search_fields = ['name', 'comment']
 
-# @admin.register(Quiz)
-# class QuizAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'name', 'lesson', 'updated_at', ]
-#     list_filter = ['updated_at']
-#     search_fields = ['name']
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'lesson', 'updated_at', ]
+    list_filter = ['updated_at']
+    search_fields = ['name']
 
-# @admin.register(QuizQuestion)
-# class QuizQuestionAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'quiz', 'body', 'has_options', ]
-#     list_filter = ['has_options']
-#     search_fields = ['body', "hint"]
+@admin.register(QuizQuestion)
+class QuizQuestionAdmin(admin.ModelAdmin):
+    list_display = ['id' ]
+    list_filter = ['question']
+    search_fields = ["quiz","hint"]
 
 
 # @admin.register(QuizQuestionOption)

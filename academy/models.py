@@ -44,9 +44,10 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
-
+  
     def get_instructor_fullname(self):
         return '' if not self.instructor else self.instructor.instructor_fullname()
+
 
 class Enrollment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -92,6 +93,8 @@ class Module(models.Model):
     # Grouping, categories
     tags = models.ManyToManyField(Tag, blank=True)
 
+    REQUIRED_FIELDS = ['Course']
+
     class Meta:
         ordering = ['name']
 
@@ -111,8 +114,7 @@ class Lesson(models.Model):
     Represents a lesson in a module
     '''
     id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
-    participants = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='module')
-
+    
     # Details
     name = models.CharField(max_length=200)
     description = models.TextField()
@@ -130,7 +132,7 @@ class Lesson(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-    class Meta:
+    class Meta: 
         ordering = ['name']
 
     def __str__(self):
@@ -155,7 +157,7 @@ class Lesson(models.Model):
 
 
     def __str__(self):
-        return f"{self.tag.name} on {self.module.name}"
+        return f"{self.name} in the {self.module.name} module"
           
 class Quiz(models.Model):
     '''
@@ -177,25 +179,62 @@ class QuizQuestion(models.Model):
     '''
     id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
     quiz = models.ForeignKey(Quiz, on_delete=models.DO_NOTHING, related_name="questions")
-    body = models.TextField()
+    #QUESTIONS
+    question = models.CharField(max_length=1000)
+    
     hint = models.TextField(null=True, blank=True)
-    has_options = models.BooleanField(default=False)
+
+    #ANSWERS
+    correct_answer = models.CharField(max_length=1000,blank=True, null=True)
+    options = models.JSONField(blank=True,  null=True)
+    answer_text = models.TextField(blank=True,  null=True)
+    url_submission = models.CharField(max_length=500, blank=True,  null=True)
+
 
     def __str__(self):
         return self.body
+    
+class Answer(models.Model):
 
-class QuizQuestionOption(models.Model):
-    '''
-    A data structure to represent an option on a multi choice question 
-    assessment type 
-    '''
-    id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
-    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, related_name="options")
+     id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
+     selected_option = models.CharField(max_length=1000,blank=True,  null=True)
+     input_text = models.TextField(blank=True,  null=True)
+     url_submisson = models.CharField(max_length=500, blank=True,  null=True)
+     question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, default='no_answer', related_name="answers")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# class QuizQuestionOption(models.Model):
+#     '''
+#     A data structure to represent an option on a multi choice question 
+#     assessment type 
+#     '''
+
+#     id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
+#     question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, related_name="options")
     
-    option_text = models.CharField(max_length=200)
+#     option_texts = models.CharField(max_length=200)
+#     is_correct = models.BooleanField(default=False)
     
-    def __str__(self) -> str:
-        return f"Option: '{self.option_text}' on Question: {self.question}"
+#     def __str__(self) -> str:
+#         return f"Option: '{self.option_text}' on Question: {self.question}"
 
 
 

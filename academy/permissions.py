@@ -2,6 +2,7 @@ from rest_framework import permissions
 
 
 class IsInstructorPermission(permissions.BasePermission):
+    
     '''
     permissons for instructors
     '''
@@ -12,13 +13,13 @@ class IsInstructorPermission(permissions.BasePermission):
 
     def has_object_permisson(self, request, view, obj):
         return obj.instructor == request.user
-
+ 
 
     
 class IsStudentPermisson(permissions.DjangoModelPermissions):
     '''
     permissons for students
-    '''
+    ''' 
 
     def has_permisson(self, request, view):
         return bool(
