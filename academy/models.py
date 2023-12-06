@@ -1,10 +1,40 @@
 import contextlib
 from django.db import models
+from django.db.models.query import QuerySet
 from shortuuid.django_fields import ShortUUIDField
 from users.models import BaseUserProfile, InstructorProfile, StudentProfile
 from wta_api_build import settings 
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 import uuid
+
+from django.db.models import Q
+
+
+
+class CourseQueryset(models.QuerySet):
+    '''
+    creating a query set for simplification of searchs
+    '''
+
+    def search(self, query):
+        #checks the look up and filters the model
+        lookup = Q(summary__icontains=query) | Q(name__icontains=query) | Q(description_icontains = query)
+        qs = self.filter(lookup)
+        return qs
+
+
+class CourseManager(models.Manager):
+    '''
+    creating a query set for simplification of searchs
+    '''
+
+    def get_queryset(self) -> QuerySet:
+        # overides the initial queryset and creates a custom query set based on the input 
+        return CourseQueryset(self.model, using=self._db)
+    
+    def search(self, query):
+        return self.get_queryset().search(query)
+
 
 
 
@@ -39,6 +69,8 @@ class Course(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at =  models.DateTimeField(auto_now=True)
 
+    objects = CourseManager()
+
     class Meta:
         ordering = ["price"]
 
@@ -47,6 +79,28 @@ class Course(models.Model):
   
     def get_instructor_fullname(self):
         return '' if not self.instructor else self.instructor.instructor_fullname()
+
+
+class CourseReview(models.Model):
+    id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,  related_name="review_author")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    comment = models.TextField()
+    rating = models.PositiveIntegerField(validators=[
+                                                     MinValueValidator(0), 
+                                                     MaxValueValidator(5)
+                                                    ]
+                                        )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ("author", "course")
+        ordering = ["updated_at"]
+        
+    def __str__(self):
+        return f"Comment by {self.user.email} on {self.course.name}"    
+
 
 
 class Enrollment(models.Model):
@@ -264,22 +318,3 @@ class Answer(models.Model):
 #     def __str__(self):
 #         return f"Comment by {self.author.email} on {self.instructor.user.email}"
 
-# class CourseReview(models.Model):
-#     id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
-#     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="review_author")
-#     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-#     comment = models.TextField()
-#     rating = models.PositiveIntegerField(validators=[
-#                                                      MinValueValidator(0), 
-#                                                      MaxValueValidator(5)
-#                                                     ]
-#                                         )
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-    
-#     class Meta:
-#         unique_together = ("author", "course")
-#         ordering = ["updated_at"]
-        
-#     def __str__(self):
-#         return f"Comment by {self.user.email} on {self.course.name}"    

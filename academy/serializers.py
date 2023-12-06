@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models import Course , Module, Lesson, Enrollment, Quiz, QuizQuestion, Answer
+from .models import (Course, CourseReview , 
+                    Module, Lesson, Enrollment, 
+                    Quiz, QuizQuestion, Answer, Tag)
 
 from users.models import  StudentProfile, InstructorProfile
 
@@ -17,23 +19,28 @@ class EnrowmentSerializer(serializers.ModelSerializer):
             "course",
             "student",
             " enrollment_date",
-            "progress"
-            
+            "progress"            
         ]
 
 
 class StudentProfileSerializer(serializers.ModelSerializer):
     enrollment = EnrowmentSerializer(read_only=True)
-
+    student_fullname = serializers.SerializerMethodField(read_only=True)
+    
+   
     class Meta: 
         model = StudentProfile
         fields = [
             "id",
-            "user",
+            # "user",
+            "student_fullname",
+            'user_profile',
             "bio",
             "enrollment"
         ]
 
+    def get_student_fullname(self, obj):
+        return obj.student_fullname()
 
 class InstructorProfileSerializer(serializers.ModelSerializer):
 
@@ -92,7 +99,7 @@ class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model= Module
    
-        fields= (
+        fields= [
             'id',
             'name',
             "module_url",
@@ -103,7 +110,7 @@ class ModuleSerializer(serializers.ModelSerializer):
            'thumbnail',
             'created_at',
             'updated_at',
-        )
+        ]
 
         read_only_fields = [
             'module_url',
@@ -157,7 +164,7 @@ class LessonSerializer(serializers.ModelSerializer):
 #              return None
 #          return obj.instructor.instructor_fullname
     
-class EnrowmentSerializer(serializers.ModelSerializer):
+class EnrollmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Enrollment
@@ -165,11 +172,14 @@ class EnrowmentSerializer(serializers.ModelSerializer):
             "id",
             "course",
             "student",
-            " enrollment_date",
+            "enrollment_date",
             "progress"
-            
+        ]
+        read_only_fields=[
+            "student"
         ]
 
+  
 
 
 class QuizParentSerializer(serializers.ModelSerializer):
@@ -220,3 +230,24 @@ class AnswerSerializer(serializers.ModelSerializer):
         ]
     
 
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=Tag
+        fields="__all__"
+
+
+class CourseReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=CourseReview
+        fields="__all__"
+
+        read_only_fields = ["author"]
+
+        def save(self, *args, **kwargs):
+
+            author = self.validated_data.get('author', self.context['request'].user)
+            self.save()
+            super().save( *args, **kwargs)
+    

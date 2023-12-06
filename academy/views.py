@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.response import Response 
 from rest_framework.decorators import api_view, action
-from rest_framework import permissions 
+from rest_framework import permissions , generics
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework import viewsets
@@ -10,11 +10,13 @@ from django.contrib.auth import get_user_model
 
 
 
-from academy.models import (Course, StudentProfile, InstructorProfile, 
-                            Lesson, Module, Answer, Enrollment,
-                            Quiz, QuizQuestion)
+from academy.models import (Course,Lesson, Module, 
+                            Answer, Enrollment,Tag,
+                            Quiz, QuizQuestion, CourseReview)
 
 from users.serializers import StudentProfileSerializer 
+from users.models import BaseUserProfile, StudentProfile, InstructorProfile
+
 from common.permissions import IsOwnerOrReadOnly
 
 from .permissions import IsInstructorPermission, IsStudentPermisson
@@ -23,7 +25,8 @@ from .permissions import IsInstructorPermission, IsStudentPermisson
 from .serializers import (CourseSerializer,LessonSerializer, 
                           InstructorProfileSerializer,StudentProfileSerializer,
                           ModuleSerializer, QuizParentSerializer, AnswerSerializer,
-                            QuizQuestionSerializer )
+                            QuizQuestionSerializer, EnrollmentSerializer, 
+                            TagSerializer, CourseReviewSerializer)
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -232,70 +235,170 @@ class AnswerviewSet(viewsets.ModelViewSet):
     #         if serializer.is_valid():
     #             serializer.save()
     #             return Response(serializer.data, status=201)
-    #         return Response(serializer.errors, status=400)
+    #         return Response(serializer.errors, s tatus=400)
 
 
 class EnrollmentViewSet(viewsets.ModelViewSet):
      
+
+     """
+     A class for enrollments 
+     -Enrolls a course (only students can)
+     """
+     
+     #queryset gets only the users enrollwed courses
      queryset = Enrollment.objects.all()
-     permissions_classes=[permissions.IsAuthenticated]
+     serializer_class =EnrollmentSerializer
+     permission_classes=[IsOwnerOrReadOnly]
 
-     def get_queryset(self, request, *args, **kwargs):
-         user = self.request.user
-         if user.is_student:
-             pass
-            #  enrolled = Enrollment.objects.filter(student=user)             
-            #  return enrolled
-         elif self.user.is_instructor:
-             enrolled = Enrollment.objects.all()
-             return enrolled
+     
+
+     def get_queryset(self, *args, **kwargs):
+
+        user = self.request.user       
+        return Enrollment.objects.filter(student=user.id)
+     
+     
+     def get_permissions(self):
+         if self.request.method == 'GET':
+             return [IsOwnerOrReadOnly()]
+         if self.request.method in ['GET','POST', 'PUT', 'PATCH']:
+            return [IsStudentPermisson()]
+         if self.request.method in ['DELETE']:
+            return [IsOwnerOrReadOnly(),IsStudentPermisson()]
+     
+     
+
+     def perform_create(self, serializer):
+        user = self.request.user
+        studentprofile = StudentProfile.objects.filter(user_profile=user)
+        serializer.save(student=studentprofile)
+
+
+     @action(detail=False,methods=['GET','POST', 'PUT', 'PATCH'])
+     def by_course(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            course = self.request.query_params.get('course')
+            if course is not None:
+                review = Enrollment.objects.filter(course=course)
+                serializer = self.get_serializer(review, many=True)
+                return Response(serializer.data)
+            else:
+                return Response({"error":"specify a parent course"})
+        elif request.method in ['POST', 'PUT', 'PATCH']:
+            serializer = EnrollmentSerializer(data = request.data,context={'request': request})
+            if serializer.is_valid():
+                serializer.save(author = request.user)
+                return Response(serializer.data, status=201)
+            return Response(serializer.errors, status=400)
+
+
+
     
-     def get_permissons(self, request, *args, **kwargs):
-         user = request.user
-         if user.is_student:
-             return [IsOwnerOrReadOnly]
-         
-             
-         
-             
 
+class StudentProfileViewSet(viewsets.ModelViewSet):
 
-class ProfileViewSet(viewsets.ModelViewSet):
-    
+    queryset = StudentProfile.objects.all()
+    serializer_class = StudentProfileSerializer
     lookup_field="pk"
+     
 
-
-    def get_queryset(self, request, *args, **kwargs):
-        user = request.user
-        if user.is_student:
-            return StudentProfile
-        if user.is_instructor:
-            return InstructorProfile
-        
     def get_permissons(self):
 
-        user = self.request.user
-        if user.is_student:
-            return {IsOwnerOrReadOnly, IsStudentPermisson}
-        elif user.is_instructor:
-            return {IsOwnerOrReadOnly,IsInstructorPermission }
+        if self.request.method == 'GET':
+            return [IsOwnerOrReadOnly]
+        if self.request.method == 'POST':
+                return [IsStudentPermisson]
+        if self.request.method in ['PATCH','DELETE','UPDATE']:
+            return [IsOwnerOrReadOnly,IsStudentPermisson]
+
+
+class InstructorProfileViewSet(viewsets.ModelViewSet):
+
+    queryset = InstructorProfile.objects.all()
+    serializer_class = InstructorProfileSerializer
+    lookup_field="pk"
+     
+
+    def get_permissons(self):
+
+        if self.request.method == 'GET':
+            return [IsOwnerOrReadOnly]
+        if self.request.method == 'POST':
+                return [IsInstructorPermission]
+        if self.request.method in ['PATCH','DELETE','UPDATE']:
+            return [IsOwnerOrReadOnly,IsInstructorPermission]
+
+
+
+class CourseSearchView(generics.ListAPIView):
+
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        '''
+        define qs(as inherited queryset)
+        q is equal to the params        
+        '''
+        qs = super().get_queryset(*args, **kwargs)
+        q = self.request.GET.get('q')
+        if self.request.user.is_authenticated:
+            results = qs.search(q)
+            return results
+        return qs
+
+
+
+class TagViewSet(ModuleViewSet):
+    '''
+    The tag  class 
+    -to create, delete, list and retieve tags
+    '''
+
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+
+class CourseReviewViewSet(ModuleViewSet):
+
+    '''
+    Reviews for each course
+    '''
         
-
-
-    def get_serializer_class(self, request, *args, **kwargs):
-        user = request.user
-        if user.is_student:
-            return [StudentProfileSerializer]
-        if user.is_instructor:
-            return [InstructorProfileSerializer]
+    queryset = CourseReview.objects.all()
+    serializer_class = CourseReviewSerializer
 
 
 
+    def get_permissions(self):
+
+        if self.request.method == 'GET':
+                    return [IsOwnerOrReadOnly()]
+        if self.request.method in ['POST','PATCH','DELETE','UPDATE']:
+                return [IsStudentPermisson()]
+    
 
 
+    @action(detail=False,methods=['GET','POST', 'PUT', 'PATCH'])
+    def by_course(self, request, *args, **kwargs):
+        if request.method == 'GET':
+            course = self.request.query_params.get('course')
+            if course is not None:
+                review = CourseReview.objects.filter(course=course)
+                serializer = self.get_serializer(review, many=True)
+                return Response(serializer.data)
+            else:
+                return Response({"error":"specify a parent course"})
+        elif request.method in ['POST', 'PUT', 'PATCH']:
+            serializer = CourseReviewSerializer(data = request.data,context={'request': request})
+            if serializer.is_valid():
+                serializer.save(author = request.user)
+                return Response(serializer.data, status=201)
+            return Response(serializer.errors, status=400)
 
 
-
+        
 
 
 

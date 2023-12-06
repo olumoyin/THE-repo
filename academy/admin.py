@@ -10,8 +10,7 @@ from academy.models import (
     StudentProfile, 
     Tag,
     Lesson,
-    # TagModule,
-    # CourseReview,
+    CourseReview,
     Quiz,
     QuizQuestion,
 )
@@ -58,19 +57,6 @@ class LessonAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
 
 
-# @admin.register(TagModule)
-# class TagModuleAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'tag', 'module']
-#     list_filter = ['tag', 'module']
-#     search_fields = ['module']
-
-
-# @admin.register(CourseReview)
-# class ReviewAdmin(admin.ModelAdmin):
-#     list_display = ['author', 'course', 'rating', 'comment', ]
-#     list_filter = ['rating', 'course', 'created_at']
-#     search_fields = ['name', 'comment']
-
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'lesson', 'updated_at', ]
@@ -84,25 +70,18 @@ class QuizQuestionAdmin(admin.ModelAdmin):
     search_fields = ["quiz","hint"]
 
 
-# @admin.register(QuizQuestionOption)
-# class QuizQuestionOptionAdmin(admin.ModelAdmin):
-#     list_display = ['id', 'question', 'option_text']
-#     list_filter = ['question']
-#     search_fields = ['option_text']
+# @admin.register(TagModule)
+# class TagModuleAdmin(admin.ModelAdmin):
+#     list_display = ['id', 'tag', 'module']
+#     list_filter = ['tag', 'module']
+#     search_fields = ['module']
 
 
-
-# @admin.register(StudentProfile)
-# class StudentProfileAdmin(admin.ModelAdmin):
-#     list_display  =  ["id", "user"]
-#     list_filter   =  ["user"]
-#     search_fields =  ["user"]
-
-# @admin.register(InstructorProfile)
-# class InstructorProfileAdmin(admin.ModelAdmin):
-#     list_display  =  ["id", "user"]
-#     list_filter   =  ["user",]
-#     search_fields =  ["user", "linkedin_url"]
+# @admin.register(CourseReview)
+# class ReviewAdmin(admin.ModelAdmin):
+#     list_display = ['author', 'course', 'rating', 'comment', ]
+#     list_filter = ['rating', 'course', 'created_at']
+#     search_fields = ['name', 'comment']
 
 
 # @admin.register(InstructorReview)
@@ -110,3 +89,10 @@ class QuizQuestionAdmin(admin.ModelAdmin):
 #     list_display  =  ["id", "author", "instructor", "rating", "updated_at"]
 #     list_filter   =  ["rating", "author", "instructor"]
 #     search_fields =  ["comment", "author", "instructor"]
+
+# @admin.register(QuizQuestionOption)
+# class QuizQuestionOptionAdmin(admin.ModelAdmin):
+#     list_display = ['id', 'question', 'option_text']
+#     list_filter = ['question']
+#     search_fields = ['option_text']
+
