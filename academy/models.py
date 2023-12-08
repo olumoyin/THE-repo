@@ -227,6 +227,11 @@ class Quiz(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+class QuestionType(models.TextChoices):
+    MULTIPLE_CHOICE = 'MC', 'Multiple Choice', 'multiple_choice'
+    TEXT_ANSWER = 'TA', 'Text Answer', 'text_answer'
+    URL_ANSWER = 'UA', 'URL Answer', 'url_answer'
+
 class QuizQuestion(models.Model):
     '''
     A data structure to represent an assessment question
@@ -241,8 +246,8 @@ class QuizQuestion(models.Model):
     #ANSWERS
     correct_answer = models.CharField(max_length=1000,blank=True, null=True)
     options = models.JSONField(blank=True,  null=True)
-    answer_text = models.TextField(blank=True,  null=True)
-    url_submission = models.CharField(max_length=500, blank=True,  null=True)
+    # ensure questionns, options and ansers match the question type in the serializer
+    question_type = models.CharField(max_length=2, choices=QuestionType.choices)
 
 
     def __str__(self):
@@ -251,12 +256,16 @@ class QuizQuestion(models.Model):
 class Answer(models.Model):
 
      id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
-     selected_option = models.CharField(max_length=1000,blank=True,  null=True)
-     input_text = models.TextField(blank=True,  null=True)
-     url_submisson = models.CharField(max_length=500, blank=True,  null=True)
+
+     # validate a amswer against its question in the serilizer
+     # every time a new answer is created in the serializer validate if the answer is correct or not 
+     # by fetching the corresponding question and checking if the answer is correct or not before saving or updating the answer
+     answer = models.CharField(max_length=1000,blank=True, null=True)
+     is_correct = models.BooleanField(default=False)
      question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE, default='no_answer', related_name="answers")
+     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="student_answers")
 
-
+    # to get student scores use aggregate function to get the sum of all correct answers for a student and divide by the total number of questions in a quiz
 
 
 
