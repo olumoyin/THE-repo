@@ -228,9 +228,9 @@ class Quiz(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class QuestionType(models.TextChoices):
-    MULTIPLE_CHOICE = 'MC', 'Multiple Choice', 'multiple_choice'
-    TEXT_ANSWER = 'TA', 'Text Answer', 'text_answer'
-    URL_ANSWER = 'UA', 'URL Answer', 'url_answer'
+    MULTIPLE_CHOICE = 'MC', 'Multiple Choice'
+    TEXT_ANSWER = 'TA', 'Text Answer'
+    URL_ANSWER = 'UA', 'URL Answer'
 
 class QuizQuestion(models.Model):
     '''
